@@ -1,6 +1,9 @@
 package primekit
 
-import "errors"
+import (
+	"errors"
+	"github.com/primebit/primekit/config"
+)
 
 var (
 	ErrorAllreadyStarted = errors.New("application allready startet")
@@ -9,7 +12,9 @@ var (
 
 func App() *Application {
 	if instance == nil {
-		instance = &Application{}
+		instance = &Application{
+			configPath: "./config/",
+		}
 	}
 
 	return instance
@@ -17,6 +22,8 @@ func App() *Application {
 
 type Application struct {
 	isStarted bool
+
+	configPath string
 }
 
 func (app *Application) Run() error {
@@ -24,8 +31,22 @@ func (app *Application) Run() error {
 		return ErrorAllreadyStarted
 	}
 
+	err := config.Init(app.configPath)
+	if err != nil {
+		return err
+	}
+
 	// start sequence
 
 	app.isStarted = true
 	return nil
+}
+
+func (app *Application) WithConfigPath(path string) *Application {
+	app.configPath = path
+	return app
+}
+
+func (app *Application) WithMetrics() *Application {
+	return app
 }
